@@ -7,7 +7,7 @@ import csv
 import gnews_data
 
 # define GNews API token
-token = "7a988107d7cb0fdd20836cce0499a6ac"
+token = "b44420c3a8bada2dc8b5f3b5c801d3a5"
 
 # import the news data file
 newsResult = gnews_data.data
@@ -71,7 +71,7 @@ def blah(comp, date):
 
 def getNews(symb_toName, comp_start_idx, date_start, business_days_range):
     queryCount = 0
-    target_queryCount = 10
+    target_queryCount = 5
     # Max 10 items per query instance
     perquery_dataCount = 10
     comp_idx = -1
@@ -96,10 +96,10 @@ def getNews(symb_toName, comp_start_idx, date_start, business_days_range):
                     findstart = False
 
             if queryCount > target_queryCount:
-                print("Starting company and date for next iteration")
-                print(comp_idx)
-                print(compName)
-                print(day)
+                print("Starting company and date for next iteration:")
+                print("Company index: " + str(comp_idx))
+                print("Company name: " + str(compName))
+                print("Date: " + str(day))
                 return True
 
             url = queryStringBuilder(compName, day)
@@ -115,10 +115,10 @@ def getNews(symb_toName, comp_start_idx, date_start, business_days_range):
             if r1['articleCount'] > 0:
                 for article in r1['articles']:
                     query_result = {"date": day, "title": article['title'], "description": article["description"]}
-                    company_result = newsResult[compName]
+                    company_result = newsResult[compSymb]
                     #print(company_result)
                     company_result.append(query_result)
-                    newsResult.update({compName: company_result})
+                    newsResult.update({compSymb: company_result})
                     #print(newsResult)
 
             queryCount += 1
@@ -141,7 +141,7 @@ def mainLoop():
     #print(business_days)
 
     # Define where the company and date that we should start, ie. left off from last search
-    query_start_date = '2019-04-18'
+    query_start_date = '2019-03-28'
     query_start_comp_idx = 1
 
     # connect to GNews
@@ -151,6 +151,10 @@ def mainLoop():
         f.write("data = ")
         f.write(str(newsResult))
 
+    # eventually save as a json file: - this will be uncoommented eventually
+    #newsResult_json = json.dump(newsResult)
+    #with open("json_outputs/newsData_gnews.json", 'w') as f:
+    #    f.write(newsResult_json)
 mainLoop()
 
 print("news data crawlering completed.")
