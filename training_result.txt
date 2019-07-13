@@ -1,0 +1,8 @@
+200, 125, 60, 2
+0.701493
+
+200, 130, 65, 2 drop: 0.2
+Epoch 99; Loss 0.072535; Train Acc 0.977676; Val Acc 0.719403
+
+Additing description does better
+# maybe the www source implies some significance?
