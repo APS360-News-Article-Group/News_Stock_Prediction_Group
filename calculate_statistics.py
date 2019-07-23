@@ -11,6 +11,7 @@ def saveJson(newsJson):
     with open("C:\\Temp\\finalData_big_balanced.json", "w") as f:
         f.write(jsonResult)
 
+
 def mainLoop():
     fileLoc = "combined_data_IT_with_stock.json"
     err_list = []
@@ -25,7 +26,6 @@ def mainLoop():
     print("Increase percentage: " + str(count_inc/ (count_inc + count_dec)))
     print("Decrease:" + str(count_dec))
     print("Decrease percentage: " + str(count_dec/ (count_inc + count_dec)))
-
 
     # Date range distribution
     date_distribution = {}
