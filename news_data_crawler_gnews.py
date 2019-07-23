@@ -4,13 +4,48 @@ import pandas as pd
 from pandas.tseries.offsets import *
 import datetime
 import csv
-import gnews_data
+import gnews_data_Mar_Apr
 
 # define GNews API token
-token = "b44420c3a8bada2dc8b5f3b5c801d3a5"
+#token = "b44420c3a8bada2dc8b5f3b5c801d3a5"  #aixiangyx
+#token = "7a988107d7cb0fdd20836cce0499a6ac"  #gloriaxiang99
+#token = "55846d7fbd99e1a9f2a81dc5c4c65569"  #gloria.xiang
+#token = "0a350066ff9fc1fd81c79372ccfda723"  #wame@tempcloud.in
+#token = "f1d02583c7cee5d165215393a960996e"  #wame1@tempcloud.in
+#token = "5c3e05c169470ef3213ac934d6053b82"  #wame2@tempcloud.in
+#token = "28636ba95ff2a2350c2ccc24da9dfd19"  #wame3@tempcloud.in
+#token = "335f118f14bd054390ab87c7ceb9558c"  #wame3@tempcloud.in
+#token = "03a88c42dbeb142df1feaf5cd40f8d84"  #lwcuyq10852@chacuo.net
+#token = "5dcbd54e665a0fd746914a37315cb331"  #biucqe79620@chacuo.net
+#token = "ec349b9567c933d53fd358256bea378c"  #tnjady96814@chacuo.net
+#token = "dbe495fd8654dd989a3ac6d9be0ba971"  #lgejvr63598@chacuo.net
+#token = "8b8405abe7cfcb0cb167cdbd5275565c"  #edhxqp82439@chacuo.net
+#token = "88c6b76570b1237363e28716e7b173e2"  #voemhz20975@chacuo.net
+#token = "6d20b3e69bd9c2fb0f37060b9354f59f"  #jeixaz05634@chacuo.net
+#token = "e8c73cdb4e657ea5aba0138049a85edd"  #acnwjv37986@chacuo.net
+#token = "fa05b00920471d2435b8ff880ed2551a"  #lpgxej97561@chacuo.net
+#token = "65c18fe1a84a0fd3a60516f785a6f9b6"  #koptsf25483@chacuo.net
+#token = "18b3bbdaee855bd278094303d6448311"  #fbkcda95472@chacuo.net
+#token = "5c4dc3a90bbe476a23a089c83607db88"  #jrbzni62508@chacuo.net
+#token = "919268d87df4f60e9af44b512b98a443"  #pxkiyb40912@chacuo.net
+#token = "11db7fce28be8dabcf97187025460f10"  #tcqpri80473@chacuo.net
+#token = "7bdc7d3302f37ab4e6e938b28882ce10"  #mauwcn52649@chacuo.net
+#token = "4b69b5c56bd30f98a04497c71536a9da"  #briszl64037@chacuo.net
+#token = "c0f38456aeb96dbd9c3c013feff56c99"  #ivnwsm62731@chacuo.net
+#token = "46c11cce4fdf2989ec74da597e4294c0"  #nkbhjq58327@chacuo.net
+#token = "2135a43b480ea33fd5e978f4b3fcb98a"  #zathvq86719@chacuo.net
+#token = "4366f298de628c2e258f038ccee058e9"  #yreoza05719@chacuo.net
+#token = "20bb59a3863456a701dfd5b4c500e741"  #bfxvmh16795@chacuo.net
+#token = "8f3a04d8b4e3befa4e675af1c050a204"  #hqosjy71298@chacuo.net
+#token = "f5335d82005ddda0e79fbb7e82da21a4"  #glkbyr39168@chacuo.net
+#token = "814594b6458cfb01f60f21aebfcbeaf0"  #glaovy96314@chacuo.net
+token = "9cde2d86ecdc01930312e211d7d5af12"  #zdnmxi68910@chacuo.net
+#token = "f0268c8b19983bbbb872d1df201b52f6" #holvtd05348@chacuo.net
+#token = "bdbaf05c96e0ed47c4805cfd6e47a89f" #jxzpvm21389@chacuo.net
+
 
 # import the news data file
-newsResult = gnews_data.data
+newsResult = gnews_data_Mar_Apr.data
 
 def loadCSV(filename):
     # csv obtained here;
@@ -69,9 +104,9 @@ def blah(comp, date):
     return r1
 
 
-def getNews(symb_toName, comp_start_idx, date_start, business_days_range):
+def getNews(symb_toName, comp_start_idx, date_start, business_days_range, target_num):
     queryCount = 0
-    target_queryCount = 5
+    target_queryCount = target_num
     # Max 10 items per query instance
     perquery_dataCount = 10
     comp_idx = -1
@@ -95,7 +130,7 @@ def getNews(symb_toName, comp_start_idx, date_start, business_days_range):
                 else:
                     findstart = False
 
-            if queryCount > target_queryCount:
+            if queryCount >= target_queryCount:
                 print("Starting company and date for next iteration:")
                 print("Company index: " + str(comp_idx))
                 print("Company name: " + str(compName))
@@ -127,27 +162,28 @@ def getNews(symb_toName, comp_start_idx, date_start, business_days_range):
 
 
 def mainLoop():
-    filename = "S&P500_list.csv"
+    csv_filename = "Tech_industry_list.csv"
 
     # rawList = all company in list
     # sectorDict = organized dictionary of companies by their respective S&P 500 sectors
-    rawList, sectorDict, symb_toName, name_toSymb = loadCSV(filename)
+    rawList, sectorDict, symb_toName, name_toSymb = loadCSV(csv_filename)
     comp_list = []
     for compSymb, compName in symb_toName.items():
         comp_list.append(compName)
 
     # Get business days in the range March 1 - April 30, 2019
     business_days = getValidDates('2019-03-01', '2019-04-30')
+    #print(len(business_days)*len(comp_list))
     #print(business_days)
 
     # Define where the company and date that we should start, ie. left off from last search
-    query_start_date = '2019-03-28'
-    query_start_comp_idx = 1
+    query_start_date = '2019-04-11'    #default start is '2019-03-01'
+    query_start_comp_idx = 71          #default start is 0
 
     # connect to GNews
-    getNews(symb_toName, query_start_comp_idx, query_start_date, business_days)
+    getNews(symb_toName, query_start_comp_idx, query_start_date, business_days, 20)
 
-    with open('gnews_data.py','w') as f:
+    with open('gnews_data_Mar_Apr.py','w') as f:
         f.write("data = ")
         f.write(str(newsResult))
 

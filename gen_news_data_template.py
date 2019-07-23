@@ -22,7 +22,8 @@ def loadCSV(filename):
 def mainLoop():
     newsResult = []
 
-    filename = "S&P500_list.csv"
+    #filename = "S&P500_list.csv"
+    filename = "Tech_industry_list.csv"
 
     # rawList = all company in list
     # sectorDict = organized dictionary of companies by their respective S&P 500 sectors
@@ -30,12 +31,10 @@ def mainLoop():
     data_template = {comp: [] for comp in comp_list}
     print(data_template)
 
-    with open('gnews_data.py','w') as f:
+    with open('tech_news_data_template.py','w') as f:
         f.write("data = ")
         f.write(str(data_template))
 
 
 
 mainLoop()
-
-print("news data crawlering completed.")
