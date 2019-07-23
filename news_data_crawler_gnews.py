@@ -7,9 +7,9 @@ import csv
 import gnews_data_Mar_Apr
 
 # define GNews API token
-#token = "b44420c3a8bada2dc8b5f3b5c801d3a5"  #aixiangyx
-#token = "7a988107d7cb0fdd20836cce0499a6ac"  #gloriaxiang99
-#token = "55846d7fbd99e1a9f2a81dc5c4c65569"  #gloria.xiang
+#token = "b44420c3a8bada2dc8b5f3b5c801d3a5"
+#token = "7a988107d7cb0fdd20836cce0499a6ac"
+#token = "55846d7fbd99e1a9f2a81dc5c4c65569"
 #token = "0a350066ff9fc1fd81c79372ccfda723"  #wame@tempcloud.in
 #token = "f1d02583c7cee5d165215393a960996e"  #wame1@tempcloud.in
 #token = "5c3e05c169470ef3213ac934d6053b82"  #wame2@tempcloud.in
@@ -188,7 +188,7 @@ def mainLoop():
         f.write(str(newsResult))
 
     # eventually save as a json file: - this will be uncoommented eventually
-    #newsResult_json = json.dump(newsResult)
+    #newsResult_json = json.dumps(newsResult)
     #with open("json_outputs/newsData_gnews.json", 'w') as f:
     #    f.write(newsResult_json)
 mainLoop()

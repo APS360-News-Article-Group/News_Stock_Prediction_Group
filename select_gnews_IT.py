@@ -1,6 +1,7 @@
 import gnews_data_Mar_Apr
 import gnews_data_Mar_Apr_IT
 import csv
+import json
 
 gnews_preprocessed = gnews_data_Mar_Apr.data
 gnews_processed = gnews_data_Mar_Apr_IT.data
@@ -33,8 +34,10 @@ for comp in IT_comp_list:
     gnews_processed.update({comp: comp_result})
     #idx += 1
 
-with open('gnews_data_Mar_Apr_IT.py','w') as f:
-    f.write("data = ")
-    f.write(str(gnews_processed))
+json_data = json.dumps(gnews_processed)
+
+with open('gnews_data_Mar_Apr_IT.json','w') as f:
+    #f.write("data = ")
+    f.write(json_data)
 
 print("Final data count:" + str(data_count))
