@@ -44,4 +44,43 @@ def mainLoop():
         for i in date_distribution:
             f.write(str(i) + ", " + str(date_distribution[i]) + "\n")
 
+    # Stock range Distribution
+    max_change = 0
+    min_change = 0
+    change_distribution = {
+        "-20.0% to -15.01%": 0,
+        "-15.0% to -10.01%": 0,
+        "-10.0% to -5.01%": 0,
+        "-5.0% to -0.01%": 0,
+        "0.0% to 4.99%": 0,
+        "5.0% to 9.99%": 0,
+        "10.0% to 14.99%": 0,
+        "15.0% to 19.99%": 0,
+        "20.0% to 24.99%": 0
+    }
+    for x in newsJson:
+        change = x['changePercent']
+        if change < -15:
+            change_distribution["-20.0% to -15.01%"] += 1
+        elif change < -10:
+            change_distribution["-15.0% to -10.01%"] += 1
+        elif change < -5:
+            change_distribution["-10.0% to -5.01%"] += 1
+        elif change < 0:
+            change_distribution["-5.0% to -0.01%"] += 1
+        elif change < 5:
+            change_distribution["0.0% to 4.99%"] += 1
+        elif change < 10:
+            change_distribution["5.0% to 9.99%"] += 1
+        elif change < 15:
+            change_distribution["10.0% to 14.99%"] += 1
+        elif change < 20:
+            change_distribution["15.0% to 19.99%"] += 1
+        else:
+            change_distribution["20.0% to 24.99%"] += 1
+    print(change_distribution)
+    with open("change_distribution.csv", "w") as f:
+        for i in change_distribution:
+            f.write(str(i) + ", " + str(change_distribution[i]) + "\n")
+
 mainLoop()
