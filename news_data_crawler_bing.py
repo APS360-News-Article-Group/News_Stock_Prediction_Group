@@ -6,7 +6,9 @@ from azure.cognitiveservices.search.newssearch import NewsSearchAPI
 from msrest.authentication import CognitiveServicesCredentials
 
 # define bing API subscription key
-subscription_key = "4d14b5ff3d5f43819027b76f89809472"
+subscription_key = "9a5a1c9b93184f71ac35f2237ef508ca"
+targetComp = "ACN ATVI ADBE AMD AKAM ADS GOOGL GOOG APH ADI ANSS AAPL AMAT ADSK ADP AVGO CA CDNS CSCO CTXS CTSH GLW CSRA DXC EBAY EA FFIV FB FIS FISV FLIR IT GPN HRS HPE HPQ INTC IBM INTU IPGP JNPR KLAC LRCX MA MCHP MU MSFT MSI NTAP NFLX NVDA ORCL PAYX PYPL QRVO QCOM RHT CRM STX SWKS SYMC SNPS TTWO TEL TXN TSS VRSN V WDC WU XRX XLNX"
+targetCompList = targetComp.split(" ")
 
 
 def loadCSV(fileLoc):
@@ -48,46 +50,54 @@ def loadStockJson(fileLoc):
 def getNews(symb_toName):
     newsData = {}
 
-    for compSymb, compName in symb_toName.items():
-        client = NewsSearchAPI(CognitiveServicesCredentials(subscription_key))
+    try:
+        for compSymb, compName in symb_toName.items():
+            client = NewsSearchAPI(CognitiveServicesCredentials(subscription_key))
 
-        mySet = set()
-        mySet2 = set()
+            mySet = set()
+            perquery_dataCount = 80
+            news_result = []
 
-        # Max 40 items per query instance
-        # 40+2 is due to the way data is indexed. This returns 40 data
-        target_dataCount = 80
-        perquery_dataCount = 40
-        news_result = []
+            news_result = client.news.search(
+                    query=compName,
+                    count=perquery_dataCount,
+                    market="en-us",
+                    sort_by="Date").value
 
-        for i in range(0, int(target_dataCount/perquery_dataCount)):
-            news_result += client.news.search(
-                query=compName,
-                count=perquery_dataCount + 2,
-                offset=str(0+perquery_dataCount*i),
-                market="en-us").value
+            # receive a unique url list for duplicate avoidance
+            for item in news_result:
+                mySet.add(item.name)
 
-        # receive a unique url list for duplicate avoidance
-        for item in news_result:
-            mySet.add(item.name)
+            myDict = dict.fromkeys(mySet, 'unseen')
 
-        myDict = dict.fromkeys(mySet, 'unseen')
+            # mySet now contains unique URLs
+            newsData[compSymb] = []
 
-        # mySet now contains unique URLs
-        newsData[compSymb] = []
+            for item in news_result:
+                if item.name in myDict and myDict[item.name] == 'unseen':
 
-        for item in news_result:
-            if item.name in myDict and myDict[item.name] == 'unseen':
+                    newsData[compSymb].append(
+                        {"date": item.date_published[:10],
+                        "headline": item.name,
+                        "description": item.description,
+                        "url": item.url})
 
-                newsData[compSymb].append(
-                    {"date": item.date_published[:10],
-                     "headline": item.name,
-                     "description": item.description,
-                     "url": item.url})
-
-                myDict[item.name] = 'seen'
+                    myDict[item.name] = 'seen'
+    except:
+        return newsData
 
     return newsData
+
+
+def filterIT(symb_toName):
+    symb_toName_IT = {}
+    name_toSymb_IT = {}
+    for key, value in symb_toName.items():
+        if key in targetCompList:
+            symb_toName_IT[key] = value
+            name_toSymb_IT[value] = key
+    
+    return symb_toName_IT, name_toSymb_IT
 
 
 def mainLoop():
@@ -99,12 +109,22 @@ def mainLoop():
     # sectorDict = organized dictionary of companies by their respective S&P 500 sectors
     rawList, sectorDict, symb_toName, name_toSymb = loadCSV(fileLoc)
 
+    symb_toName_IT, name_toSymb_IT = filterIT(symb_toName)
+
+    # for data cut off
+    new_dict = {}
+    i = 0
+    for key, value in symb_toName_IT.items():
+        i += 1
+        if i >= 41:
+            new_dict[key] = value
+
     # connect to bing
-    newsData = getNews(symb_toName)
+    newsData = getNews(new_dict)
 
     jsonResult = json.dumps(newsData)
 
-    with open("C:\\Temp\\newsData_big.json", "w") as f:
+    with open("C:\\Temp\\newsData_bing_IT.json", "w") as f:
         f.write(jsonResult)
 
 

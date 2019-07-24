@@ -5,7 +5,7 @@ import holidays
 import csv
 
 # define API token
-IEX_API_token = "token=pk_6d20e7d98c5c4e718cefe3c8de1100ec"
+IEX_API_token = "token=pk_8809fc48a6ba4c7992d73a10254a9705"
 
 
 def validSymbol(stockSymb):
@@ -76,7 +76,8 @@ def nextMarketDate(givenDate):
 
 def getStock(symb_toName):
     finalResult, errLog = [], []
-    fileLoc_news = "C:\\Temp\\newsData_big.json"
+    # fileLoc_news = "C:\\Temp\\newsData_big.json"
+    fileLoc_news = "C:\\Temp\\newsData_bing_IT.json"
     newsJson = loadStockJson(fileLoc_news)
 
     for compSymb, compName in symb_toName.items():
@@ -123,7 +124,7 @@ def mainLoop():
     queryResult = getStock(symb_toName)
     jsonResult = json.dumps(queryResult)
 
-    with open("C:\\Temp\\finalData_big.json", "w") as f:
+    with open("C:\\Temp\\finalData_bing.json", "w") as f:
         f.write(jsonResult)
 
 

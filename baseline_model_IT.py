@@ -99,17 +99,19 @@ def sent2vec_dataSplit():
     return train, valid, test
 
 def word2vec_dataSplit(wordLimit):
-    targetComp = "ACN ATVI ADBE AMD AKAM ADS GOOGL GOOG APH ADI ANSS AAPL AMAT ADSK ADP AVGO CA CDNS CSCO CTXS CTSH GLW CSRA DXC EBAY EA FFIV FB FIS FISV FLIR IT GPN HRS HPE HPQ INTC IBM INTU IPGP JNPR KLAC LRCX MA MCHP MU MSFT MSI NTAP NFLX NVDA ORCL PAYX PYPL QRVO QCOM RHT CRM STX SWKS SYMC SNPS TTWO TEL TXN TSS VRSN V WDC WU XRX XLNX"
-    targetCompList = targetComp.split(" ")
     print("Datasplit intialized.")
+
     # first, load the stock json obtained from stock_data_crawler
     train, valid, test = [], [], []
-    fileLoc = "C:\\Temp\\finalData_big_balanced.json"
-    fileLoc = "C:\\Temp\\IT_news_2_balanced.json"
+    train_fileLoc = "C:\\Temp\\IT_train.json"
+    valid_fileLoc = "C:\\Temp\\IT_valid.json"
+    test_fileLoc = "C:\\Temp\\IT_test.json"
     modelLoc = "C:\\Temp\\GoogleNews-vectors-negative300.bin.gz"
-    # wordLimit = 1000000
-    # wordLimit = 5000
-    stockJson = loadJson(fileLoc)
+
+    trainJson = loadJson(train_fileLoc)
+    validJson = loadJson(valid_fileLoc)
+    testJson = loadJson(test_fileLoc)
+
     model = gensim.models.KeyedVectors.load_word2vec_format(
         modelLoc, binary=True, limit=wordLimit)
 
@@ -122,27 +124,50 @@ def word2vec_dataSplit(wordLimit):
     
     switchData = True
 
-    for i, item in enumerate(stockJson):
-        if item['companySymbol'] in targetCompList:
-            try:
-                token_list = tokenizer.tokenize(item['headline'] + " " + item['description'])
-                token_list_1 = [word for word in token_list]
+    for i, item in enumerate(trainJson):
+        try:
+            token_list = tokenizer.tokenize(item['headline'])
+            token_list_1 = [word for word in token_list]
 
-                idxs = [
-                    model_stoi[word].index for word in token_list_1 if word in model_stoi]
-                idxs = torch.tensor(idxs)
-                label = torch.tensor(int(item['label'])).long()
-                if i % 10 < 7:
-                    train.append((idxs, label))
-                else:
-                    if switchData:
-                        valid.append((idxs, label))
-                        switchData = False
-                    else:
-                        test.append((idxs, label))
-                        switchData = True       
-            except:
-                errorList.append(item)
+            idxs = [
+                model_stoi[word].index for word in token_list_1 if word in model_stoi]
+            idxs = torch.tensor(idxs)
+            label = torch.tensor(int(item['label'])).long()
+
+            train.append((idxs, label))  
+
+        except:
+            errorList.append(item)
+    
+    for i, item in enumerate(validJson):
+        try:
+            token_list = tokenizer.tokenize(item['headline'])
+            token_list_1 = [word for word in token_list]
+
+            idxs = [
+                model_stoi[word].index for word in token_list_1 if word in model_stoi]
+            idxs = torch.tensor(idxs)
+            label = torch.tensor(int(item['label'])).long()
+
+            valid.append((idxs, label))  
+
+        except:
+            errorList.append(item)
+
+    for i, item in enumerate(testJson):
+        try:
+            token_list = tokenizer.tokenize(item['headline'])
+            token_list_1 = [word for word in token_list]
+
+            idxs = [
+                model_stoi[word].index for word in token_list_1 if word in model_stoi]
+            idxs = torch.tensor(idxs)
+            label = torch.tensor(int(item['label'])).long()
+
+            test.append((idxs, label))  
+
+        except:
+            errorList.append(item)
 
     i2, j2, k2 = len(train), len(valid), len(test)
     # model_emb = nn.Embedding.from_pretrained(model.vectors)
@@ -194,17 +219,13 @@ def get_accuracy(model, data_loader):
     correct, total = 0, 0
     precision_correct, precision_total = 0, 0
     errLog = []
-    pred_total, label_total = [], []
 
     for batch in data_loader:
-        # try:
+        try:
             output = model(batch[0])
             pred = output.max(1, keepdim=True)[1]
-
             correct += pred.eq(batch[1].view_as(pred)).sum().item()
             total += batch[1].shape[0]
-            pred_total += [int(i) for i in pred]
-            label_total += [int(i) for i in batch[1]]
 
             # precision calculation
             indices = [i for i in range(pred.shape[0]) if pred[i] == 1]
@@ -213,12 +234,8 @@ def get_accuracy(model, data_loader):
                     precision_correct += 1
             precision_total += len(indices)
 
-        # except:
-        #     errLog.append((batch.headline, batch.changePercent))
-    confusion = tf.confusion_matrix(labels=label_total, predictions=pred_total)
-    sess = tf.Session()
-    with sess.as_default():
-        print(sess.run(confusion))
+        except:
+            errLog.append((batch[0], batch[1]))
     
     if precision_total == 0:
         ha = 0
@@ -260,12 +277,10 @@ class baselineModel(nn.Module):
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(0.1)
         # 150 --> 50 --> 2
-        # self.fc_1 = nn.Linear(input_size, 190)
-        # self.fc_2 = nn.Linear(190, 120)
-        # self.fc_3 = nn.Linear(120, 60)
-        # self.fc_4 = nn.Linear(60, num_classes)
-        self.fc_1 = nn.Linear(input_size, 150)
-        self.fc_2 = nn.Linear(150, num_classes)
+        self.fc_1 = nn.Linear(input_size, 190)
+        self.fc_2 = nn.Linear(190, 120)
+        self.fc_3 = nn.Linear(120, 60)
+        self.fc_4 = nn.Linear(60, num_classes)
 
     def forward(self, x):
         # Look up the embedding
@@ -276,7 +291,9 @@ class baselineModel(nn.Module):
 
         # 2 simple fc layers
         out = self.dropout(self.relu(self.fc_1(x_1)))
-        out = self.fc_2(out)
+        out = self.dropout(self.relu(self.fc_2(out)))
+        out = self.dropout(self.relu(self.fc_3(out)))
+        out = self.fc_4(out)
 
         return out
 
@@ -374,7 +391,7 @@ def mainLoop_word2vec():
     embedding = nn.Embedding.from_pretrained(weights)
 
     # initial hyper parameter definition
-    batch_size = 64
+    batch_size = 32
     hidden_size = "N/A"
 
     # load data, need to work on test loader 248 before
@@ -400,7 +417,7 @@ def test_word2vec(model_path):
     train, valid, test, model, test_allPositive, test_allNegative = word2vec_dataSplit(wordLimit=100000)
 
     # initial hyper parameter definition
-    batch_size = 64
+    batch_size = 32
     hidden_size = "N/A"
 
     # define weights and embedding of pretrained word2vec model

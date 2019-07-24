@@ -16,7 +16,6 @@ import json
 import torchtext
 import torchtext.data as data
 import torchtext.vocab as vocab
-import tensorflow as tf
 import nltk
 from nltk.tokenize import RegexpTokenizer
 import string
@@ -130,7 +129,6 @@ def get_accuracy(model, data_loader):
     correct, total = 0, 0
     precision_correct, precision_total = 0, 0
     errLog = []
-    pred_total, label_total = [], []
 
     for batch in data_loader:
         # try:
@@ -138,8 +136,6 @@ def get_accuracy(model, data_loader):
             pred = output.max(1, keepdim=True)[1]
             correct += pred.eq(batch.changePercent.view_as(pred)).sum().item()
             total += batch.label.shape[0]
-            pred_total += [int(i) for i in pred]
-            label_total += [int(i) for i in batch.changePercent]
 
             # precision calculation
             indices = [i for i in range(pred.shape[0]) if pred[i] == 1]
@@ -150,10 +146,6 @@ def get_accuracy(model, data_loader):
 
         # except:
         #     errLog.append((batch.headline, batch.changePercent))
-    confusion = tf.confusion_matrix(labels=label_total, predictions=pred_total)
-    sess = tf.Session()
-    with sess.as_default():
-        print(sess.run(confusion))
     
     if precision_total == 0:
         ha = 0
@@ -221,7 +213,6 @@ class NewsGRU_eye(nn.Module):
         super(NewsGRU_eye, self).__init__()
         self.emb = torch.eye(input_size)
         self.hidden_size = hidden_size
-        self.name = "NewsGRU_eye"
         self.rnn = nn.GRU(input_size, hidden_size, dropout=0.2, batch_first=True)
         self.relu = nn.ReLU()
         self.fc = nn.Linear(hidden_size, num_classes)
@@ -247,7 +238,6 @@ class NewsGRU_word2vec(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes, embedding):
         super(NewsGRU_word2vec, self).__init__()
         self.emb = embedding
-        self.name = "NewsGRU_word2vec"
         self.hidden_size = hidden_size
         self.rnn = nn.GRU(input_size, hidden_size, dropout=0.2, batch_first=True)
         self.relu = nn.ReLU()
@@ -447,11 +437,6 @@ def tabular_dataSplit(glove_model):
                                     batch_first=True,
                                     use_vocab=True,
                                     tokenize=lambda x: [word.lower() for word in tokenizer.tokenize(x) if word.lower() not in stopList])
-    # text_field = torchtext.data.Field(sequential=True,
-    #                                 include_lengths=True,
-    #                                 batch_first=True,
-    #                                 use_vocab=True,
-    #                                 tokenize=lambda x: torch.tensor([model_stoi[word].index for word in tokenizer.tokenize(x) if word in model_stoi]))
     label_field = torchtext.data.Field(sequential=False,
                                     use_vocab=False,
                                     is_target=True,      
@@ -470,34 +455,21 @@ def tabular_dataSplit(glove_model):
     fields = {"headline": ("headline", text_field), 
     "label": ("label", label_field), 
     "description": ("description", text_field), 
-    # "url": ("url", base_field), 
+    "url": ("url", base_field), 
     "companyName": ("companyName", base_field), 
     "companySymbol": ("companySymbol", base_field), 
     "changePercent":("changePercent", change_field), 
     "label":("label", base_field)}
 
-    # newsJson = loadJson(fileLoc = "C:\\Temp\\finalData_big_balanced.json")
-    newsJson = loadJson(fileLoc = "C:\\Temp\\IT_news_2_balanced.json")
+    trainDict = loadJson(fileLoc = "C:\\Temp\\IT_train.json")
+    validDict = loadJson(fileLoc = "C:\\Temp\\IT_valid.json")
+    testDict = loadJson(fileLoc = "C:\\Temp\\IT_test.json")
+    totalDict = trainDict + validDict + testDict
 
-    targetComp = "ACN ATVI ADBE AMD AKAM ADS GOOGL GOOG APH ADI ANSS AAPL AMAT ADSK ADP AVGO CA CDNS CSCO CTXS CTSH GLW CSRA DXC EBAY EA FFIV FB FIS FISV FLIR IT GPN HRS HPE HPQ INTC IBM INTU IPGP JNPR KLAC LRCX MA MCHP MU MSFT MSI NTAP NFLX NVDA ORCL PAYX PYPL QRVO QCOM RHT CRM STX SWKS SYMC SNPS TTWO TEL TXN TSS VRSN V WDC WU XRX XLNX"
-    targetCompList = targetComp.split(" ")
-
-    result = []
-    a, b = 0, 0
-    for i, item in enumerate(newsJson):
-        # we need to tokenize this sentence
-        # item['title']
-        if item['companySymbol'] in targetCompList:
-            result.append(item)
-            if item['label'] > 0:
-                a+=1
-            else:
-                b+=1
-
-    full_dataset = TabularDataset_From_List(input_list = result, format = "dict", fields = fields)
-
-    # dataset split
-    train, valid, test = full_dataset.split(split_ratio = [0.7, 0.15, 0.15])
+    totalData = TabularDataset_From_List(input_list = totalDict, format = "dict", fields = fields)
+    train = TabularDataset_From_List(input_list = trainDict, format = "dict", fields = fields)
+    valid = TabularDataset_From_List(input_list = validDict, format = "dict", fields = fields)
+    test = TabularDataset_From_List(input_list = testDict, format = "dict", fields = fields)
 
     # ====================== word2vec translate ===========================
     # https://discuss.pytorch.org/t/aligning-torchtext-vocab-index-to-loaded-embedding-pre-trained-weights/20878
@@ -511,7 +483,7 @@ def tabular_dataSplit(glove_model):
 
     # build vocab is needed to initialize vocab ca
     base_field.build_vocab(model.vocab)
-    text_field.build_vocab(full_dataset, vectors=vectors)
+    text_field.build_vocab(totalData, vectors=vectors)
     text_field.vocab.load_vectors(vectors=vectors)
     embedding = nn.Embedding.from_pretrained(torch.FloatTensor(text_field.vocab.vectors))
 
@@ -528,8 +500,7 @@ def tabular_dataSplit(glove_model):
 def train_rnn_network(model, train_iter, valid_iter, num_epochs, learning_rate, batch_size, hidden_size):
     criterion = nn.CrossEntropyLoss()
 
-    # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    optimizer = torch.optim.RMSprop(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     losses, train_acc, valid_acc, train_prec, valid_prec = [], [], [], [], []
     best_model_acc = 0
     epochs = []
@@ -581,57 +552,35 @@ def train_rnn_network(model, train_iter, valid_iter, num_epochs, learning_rate, 
 
 
 def mainLoop():
-    # split data, wordLimit = take word vectors of the 'n' most commonly used words in GoogleNews
-    # train, valid, test, model = dataSplit(wordLimit=50000)
-
-    # glove_model = torchtext.vocab.GloVe(name='840B', dim=300, max_vectors=10000)
-
     train, valid, test, model, text_field, embedding = tabular_dataSplit("glove_model")
-
-    # define weights and embedding of pretrained word2vec model
-    # weights = torch.FloatTensor(model.vectors)
-    # embedding = nn.Embedding.from_pretrained(weights)
-
-    # load data, need to work on test loader
-    # train_loader = TweetBatcher(train, batch_size=32, drop_last=False)
-    # valid_loader = TweetBatcher(valid, batch_size=32, drop_last=False)
-
-    # use bucket iterator
-    # sort_key=lambda x: len(x.headline)
 
     batch_size = 32
     hidden_size = 64
 
     train_iter = torchtext.data.BucketIterator(train,
-                                           batch_size=batch_size,
-                                           sort_key=lambda x: len(x.headline), # to minimize padding
-                                           sort_within_batch=True,        # sort within each batch
-                                           repeat=False)                  # repeat the iterator for many epochs
+                                            batch_size=batch_size,
+                                            sort_key=lambda x: len(x.headline),
+                                            sort_within_batch=True,
+                                            repeat=False)
     val_iter = torchtext.data.BucketIterator(valid,
-                                           batch_size=batch_size,
-                                           sort_key=lambda x: len(x.headline), # to minimize padding
-                                           sort_within_batch=True,        # sort within each batch
-                                           repeat=False)                  # repeat the iterator for many epochs
+                                            batch_size=batch_size,
+                                            sort_key=lambda x: len(x.headline),
+                                            sort_within_batch=True,
+                                            repeat=False)
     test_iter = torchtext.data.BucketIterator(test,
-                                           batch_size=batch_size,
-                                           sort_key=lambda x: len(x.headline), # to minimize padding
-                                           sort_within_batch=True,        # sort within each batch
-                                           repeat=False)                  # repeat the iterator for many epochs
+                                            batch_size=batch_size,
+                                            sort_key=lambda x: len(x.headline),
+                                            sort_within_batch=True,
+                                            repeat=False)
     
     # need input size to be a variable
-    # inputSize = 
     input_size = embedding.num_embeddings
-    # valina RNN and LSTM
-    # model_simple = NewsRNN(300, 248, 2, embedding)
-    # model_eye = NewsRNN_eye(input_size, 62, 2, embedding)
-    # model_medium = NewsGRU(300, 2048, 2, embedding)
-    # model_complex = NewsLSTM(300, 124, 2, 2, embedding)
     
-    model_LSTM_eye = NewsLSTM_eye(input_size, hidden_size, 2, 2, embedding)
+    model_LSTM_eye = NewsLSTM_eye(input_size, 124, 2, 2, embedding)
     model_gru_eye = NewsGRU_eye(input_size, hidden_size, 2)
 
     # word2vec uses GoogleNews300 embedding
-    model_gru_word2vec = NewsGRU_word2vec(300, hidden_size, 2, embedding)
+    model_gru_word2vec = NewsGRU_word2vec(300, 64, 2, embedding)
     model_LSTM_word2vec = NewsLSTM_word2vec(300, hidden_size, 2, 2, embedding)
 
     # for any text value, vocab for the field must be built, otherwise torchtext throws error as it would be expecting integer
@@ -640,19 +589,16 @@ def mainLoop():
     # text_field.build_vocab(train, valid, test, vectors=vectors)
     # get initial accuracy
     print("Get accuracy initialized.")
-    print(get_accuracy(model_gru_word2vec, train_iter))
+    print(get_accuracy(model_LSTM_word2vec, train_iter))
     print("Get accuracy complete.")
 
     # train network
     # train_rnn_network(model_LSTM_eye, train_iter, val_iter,
-    #                   num_epochs=100, learning_rate=1.5e-04, batch_size=batch_size, hidden_size=hidden_size)
-
-    train_rnn_network(model_gru_word2vec, train_iter, val_iter,
-                    num_epochs=200, learning_rate=2e-04, batch_size=batch_size, hidden_size=hidden_size)
+    #                   num_epochs=50, learning_rate=1.5e-04, batch_size=batch_size, hidden_size=hidden_size)
 
     # train network
-    # train_rnn_network(model_LSTM_word2vec, train_iter, val_iter,
-    #                   num_epochs=200, learning_rate=2e-04, batch_size=batch_size, hidden_size=hidden_size)
+    train_rnn_network(model_LSTM_word2vec, train_iter, val_iter,
+                      num_epochs=150, learning_rate=2e-04, batch_size=batch_size, hidden_size=hidden_size)
 
 def test_model(model_path):
     train, valid, test, model, text_field, embedding = tabular_dataSplit("glove_model")

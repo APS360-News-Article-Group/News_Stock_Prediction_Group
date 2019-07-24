@@ -8,11 +8,11 @@ def loadJson(fileLoc):
 def saveJson(newsJson):
     jsonResult = json.dumps(newsJson)
 
-    with open("C:\\Temp\\finalData_big_balanced.json", "w") as f:
+    with open("C:\\Temp\\IT_news_2_balanced.json", "w") as f:
         f.write(jsonResult)
 
 def mainLoop():
-    fileLoc = "C:\\Temp\\finalData_big.json"
+    fileLoc = "C:\\Temp\\IT_news_2.json"
     
     newsJson = loadJson(fileLoc)
 
