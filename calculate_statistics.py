@@ -13,7 +13,7 @@ def saveJson(newsJson):
 
 
 def mainLoop():
-    fileLoc = "combined_data_IT_with_stock.json"
+    fileLoc = "C:\\Temp\\IT_news_3.json"
     err_list = []
 
     newsJson = loadJson(fileLoc)
@@ -48,36 +48,52 @@ def mainLoop():
     max_change = 0
     min_change = 0
     change_distribution = {
-        "-20.0% to -15.01%": 0,
-        "-15.0% to -10.01%": 0,
-        "-10.0% to -5.01%": 0,
-        "-5.0% to -0.01%": 0,
-        "0.0% to 4.99%": 0,
-        "5.0% to 9.99%": 0,
-        "10.0% to 14.99%": 0,
-        "15.0% to 19.99%": 0,
-        "20.0% to 24.99%": 0
+        "-25.0% to -6.01%": 0,
+        "-6.0% to -5.01%": 0,
+        "-5.0% to -4.01%": 0,
+        "-4.0% to -3.01%": 0,
+        "-3.0% to -2.01%": 0,
+        "-2.0% to -1.01%": 0,
+        "-1.0% to -0.01%": 0,
+        "0.0% to 0.99%": 0,
+        "1.0% to 1.99%": 0,
+        "2.0% to 2.99%": 0,
+        "3.0% to 3.99%": 0,
+        "4.0% to 4.99%": 0,
+        "5.0% to 5.99%": 0,
+        "6.0% to 24.99%": 0
     }
     for x in newsJson:
         change = x['changePercent']
-        if change < -15:
-            change_distribution["-20.0% to -15.01%"] += 1
-        elif change < -10:
-            change_distribution["-15.0% to -10.01%"] += 1
+        if change < -6:
+            change_distribution["-25.0% to -6.01%"] += 1
         elif change < -5:
-            change_distribution["-10.0% to -5.01%"] += 1
+            change_distribution["-6.0% to -5.01%"] += 1
+        elif change < -4:
+            change_distribution["-5.0% to -4.01%"] += 1
+        elif change < -3:
+            change_distribution["-4.0% to -3.01%"] += 1
+        elif change < -2:
+            change_distribution["-3.0% to -2.01%"] += 1
+        elif change < -1:
+            change_distribution["-2.0% to -1.01%"] += 1
         elif change < 0:
-            change_distribution["-5.0% to -0.01%"] += 1
+            change_distribution["-1.0% to -0.01%"] += 1
+        elif change < 1:
+            change_distribution["0.0% to 0.99%"] += 1
+        elif change < 2:
+            change_distribution["1.0% to 1.99%"] += 1
+        elif change < 3:
+            change_distribution["2.0% to 2.99%"] += 1
+        elif change < 4:
+            change_distribution["3.0% to 3.99%"] += 1
         elif change < 5:
-            change_distribution["0.0% to 4.99%"] += 1
-        elif change < 10:
-            change_distribution["5.0% to 9.99%"] += 1
-        elif change < 15:
-            change_distribution["10.0% to 14.99%"] += 1
-        elif change < 20:
-            change_distribution["15.0% to 19.99%"] += 1
+            change_distribution["4.0% to 4.99%"] += 1
+        elif change < 6:
+            change_distribution["5.0% to 5.99%"] += 1
         else:
-            change_distribution["20.0% to 24.99%"] += 1
+            change_distribution["6.0% to 24.99%"] += 1
+
     print(change_distribution)
     with open("change_distribution.csv", "w") as f:
         for i in change_distribution:
