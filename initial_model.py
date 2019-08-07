@@ -369,7 +369,6 @@ class NewsLSTM_word2vec(nn.Module):
 
         self.rnn = nn.LSTM(input_size, hidden_size,
                            num_layers, dropout = 0.2, batch_first=True)
-        self.fc = nn.Linear(hidden_size*2, num_classes)
         self.fc_1 = nn.Linear(hidden_size, 50)
         self.fc_2 = nn.Linear(50, num_classes)
         self.relu = nn.ReLU()
@@ -600,7 +599,7 @@ def mainLoop():
     # sort_key=lambda x: len(x.headline)
 
     batch_size = 32
-    hidden_size = 64
+    hidden_size = 96
 
     train_iter = torchtext.data.BucketIterator(train,
                                            batch_size=batch_size,
@@ -632,7 +631,7 @@ def mainLoop():
 
     # word2vec uses GoogleNews300 embedding
     model_gru_word2vec = NewsGRU_word2vec(300, hidden_size, 2, embedding)
-    model_LSTM_word2vec = NewsLSTM_word2vec(300, hidden_size, 2, 2, embedding)
+    model_LSTM_word2vec = NewsLSTM_word2vec(300, hidden_size, 4, 2, embedding)
 
     # for any text value, vocab for the field must be built, otherwise torchtext throws error as it would be expecting integer
 
@@ -640,14 +639,14 @@ def mainLoop():
     # text_field.build_vocab(train, valid, test, vectors=vectors)
     # get initial accuracy
     print("Get accuracy initialized.")
-    print(get_accuracy(model_gru_word2vec, train_iter))
+    print(get_accuracy(model_LSTM_word2vec, train_iter))
     print("Get accuracy complete.")
 
     # train network
     # train_rnn_network(model_LSTM_eye, train_iter, val_iter,
     #                   num_epochs=100, learning_rate=1.5e-04, batch_size=batch_size, hidden_size=hidden_size)
 
-    train_rnn_network(model_gru_word2vec, train_iter, val_iter,
+    train_rnn_network(model_LSTM_word2vec, train_iter, val_iter,
                     num_epochs=200, learning_rate=2e-04, batch_size=batch_size, hidden_size=hidden_size)
 
     # train network
