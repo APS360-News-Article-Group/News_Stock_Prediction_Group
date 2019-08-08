@@ -4,26 +4,52 @@ import pandas as pd
 from pandas.tseries.offsets import *
 import datetime
 import csv
-import gnews_data_Mar_Apr
 
-# define GNews API token
-#token = "b44420c3a8bada2dc8b5f3b5c801d3a5"
-#token = "7a988107d7cb0fdd20836cce0499a6ac"
-#token = "55846d7fbd99e1a9f2a81dc5c4c65569"
-#token = "0a350066ff9fc1fd81c79372ccfda723"  #wame@tempcloud.in
-#token = "f1d02583c7cee5d165215393a960996e"  #wame1@tempcloud.in
-#token = "5c3e05c169470ef3213ac934d6053b82"  #wame2@tempcloud.in
-#token = "28636ba95ff2a2350c2ccc24da9dfd19"  #wame3@tempcloud.in
-#token = "335f118f14bd054390ab87c7ceb9558c"  #wame3@tempcloud.in
-#token = "03a88c42dbeb142df1feaf5cd40f8d84"  #lwcuyq10852@chacuo.net
-#token = "5dcbd54e665a0fd746914a37315cb331"  #biucqe79620@chacuo.net
-#token = "ec349b9567c933d53fd358256bea378c"  #tnjady96814@chacuo.net
-#token = "dbe495fd8654dd989a3ac6d9be0ba971"  #lgejvr63598@chacuo.net
-#token = "8b8405abe7cfcb0cb167cdbd5275565c"  #edhxqp82439@chacuo.net
-#token = "88c6b76570b1237363e28716e7b173e2"  #voemhz20975@chacuo.net
-#token = "6d20b3e69bd9c2fb0f37060b9354f59f"  #jeixaz05634@chacuo.net
-#token = "e8c73cdb4e657ea5aba0138049a85edd"  #acnwjv37986@chacuo.net
-#token = "fa05b00920471d2435b8ff880ed2551a"  #lpgxej97561@chacuo.net
+# ============================= manual input =============================
+# import the data python file
+# below line will have to change depending on your storage file name
+writeFile = "gnews_data_June"
+import gnews_data_June
+newsResult = gnews_data_June.data
+# ============================= manual input =============================
+
+# ============================= define GNews API token =============================
+# token = "035ee06744baad0857d4786961b5cff7" #kyle1
+# token = "140baed7b30867b68c2a166d5dd9b0d1" #kyle2
+# token = "2814eebf0f6fd2602632117c866d7820" #kyle3
+# token = "f137d3168f118726334331a0fe1fbaac" #kyle4
+# token = "d4ebd94ba2d21ca2b28bf4777e4a2b5a" #kyle5
+# token = "803e93c03f56c38983677b7e0a46fb3c" #kyle6
+token = "205e5bb305687f171870c42f58d831da" #kyle7
+# token = "7809bac7e3fe1710fe5858f4f8b99fc9" #kyle8
+# token = "f6df9a919e4a359f0c8bf4d2359e17d2" #kyle6
+# token = "6a615031945cb9921b73c7d975c4d277" #kyle7
+# token = "221c66bf131e35d2bb2f55ff20346644" #kyle8
+# token = "d680696bf3d7f172e60687027eca9042" #kyle9
+# token = "8b2dc6bc44586f111e2da896400c6b05" #kyle10
+# token = "59c4325ac36d1f42179f676b82a4c81e" #kyle11
+# token = "2b8c1915919b081444baaccf2e2a56f7" #kyle12
+# token = "b8396968674cb8f9fb8ae777822aacff" #kyle13
+# token = "e03a1905a041efb03405046ff503d0b2" #kyle14
+# token = "784595a24bc5a3c28cd2c4791cd61c8e" #kyle15
+# token = "5dd3031883af018f461107ffffd74402" #kyle16
+# token = "b44420c3a8bada2dc8b5f3b5c801d3a5"
+# token = "7a988107d7cb0fdd20836cce0499a6ac"
+# token = "55846d7fbd99e1a9f2a81dc5c4c65569"
+# token = "0a350066ff9fc1fd81c79372ccfda723"  #wame@tempcloud.in
+# token = "f1d02583c7cee5d165215393a960996e"  #wame1@tempcloud.in
+# token = "5c3e05c169470ef3213ac934d6053b82"  #wame2@tempcloud.in
+# token = "28636ba95ff2a2350c2ccc24da9dfd19"  #wame3@tempcloud.in
+# token = "335f118f14bd054390ab87c7ceb9558c"  #wame3@tempcloud.in
+# token = "03a88c42dbeb142df1feaf5cd40f8d84"  #lwcuyq10852@chacuo.net
+# token = "5dcbd54e665a0fd746914a37315cb331"  #biucqe79620@chacuo.net
+# token = "ec349b9567c933d53fd358256bea378c"  #tnjady96814@chacuo.net
+# token = "dbe495fd8654dd989a3ac6d9be0ba971"  #lgejvr63598@chacuo.net
+# token = "8b8405abe7cfcb0cb167cdbd5275565c"  #edhxqp82439@chacuo.net
+# token = "88c6b76570b1237363e28716e7b173e2"  #voemhz20975@chacuo.net
+# token = "6d20b3e69bd9c2fb0f37060b9354f59f"  #jeixaz05634@chacuo.net
+# token = "e8c73cdb4e657ea5aba0138049a85edd"  #acnwjv37986@chacuo.net
+# token = "fa05b00920471d2435b8ff880ed2551a"  #lpgxej97561@chacuo.net
 #token = "65c18fe1a84a0fd3a60516f785a6f9b6"  #koptsf25483@chacuo.net
 #token = "18b3bbdaee855bd278094303d6448311"  #fbkcda95472@chacuo.net
 #token = "5c4dc3a90bbe476a23a089c83607db88"  #jrbzni62508@chacuo.net
@@ -39,13 +65,11 @@ import gnews_data_Mar_Apr
 #token = "8f3a04d8b4e3befa4e675af1c050a204"  #hqosjy71298@chacuo.net
 #token = "f5335d82005ddda0e79fbb7e82da21a4"  #glkbyr39168@chacuo.net
 #token = "814594b6458cfb01f60f21aebfcbeaf0"  #glaovy96314@chacuo.net
-token = "9cde2d86ecdc01930312e211d7d5af12"  #zdnmxi68910@chacuo.net
-#token = "f0268c8b19983bbbb872d1df201b52f6" #holvtd05348@chacuo.net
-#token = "bdbaf05c96e0ed47c4805cfd6e47a89f" #jxzpvm21389@chacuo.net
+#token = "9cde2d86ecdc01930312e211d7d5af12"  #zdnmxi68910@chacuo.net
+# token = "f0268c8b19983bbbb872d1df201b52f6" #holvtd05348@chacuo.net
+# token = "bdbaf05c96e0ed47c4805cfd6e47a89f" #jxzpvm21389@chacuo.net
 
 
-# import the news data file
-newsResult = gnews_data_Mar_Apr.data
 
 def loadCSV(filename):
     # csv obtained here;
@@ -149,7 +173,7 @@ def getNews(symb_toName, comp_start_idx, date_start, business_days_range, target
 
             if r1['articleCount'] > 0:
                 for article in r1['articles']:
-                    query_result = {"date": day, "title": article['title'], "description": article["description"]}
+                    query_result = {"date": day, "title": article["title"], "description": article["description"]}
                     company_result = newsResult[compSymb]
                     #print(company_result)
                     company_result.append(query_result)
@@ -172,18 +196,18 @@ def mainLoop():
         comp_list.append(compName)
 
     # Get business days in the range March 1 - April 30, 2019
-    business_days = getValidDates('2019-03-01', '2019-04-30')
+    business_days = getValidDates('2019-06-03', '2019-06-14')
     #print(len(business_days)*len(comp_list))
     #print(business_days)
 
     # Define where the company and date that we should start, ie. left off from last search
-    query_start_date = '2019-04-11'    #default start is '2019-03-01'
-    query_start_comp_idx = 71          #default start is 0
+    query_start_date = '2019-06-03'    #default start is '2019-05-01'
+    query_start_comp_idx = 70          #default start is 0
 
     # connect to GNews
-    getNews(symb_toName, query_start_comp_idx, query_start_date, business_days, 20)
+    getNews(symb_toName, query_start_comp_idx, query_start_date, business_days, 100)
 
-    with open('gnews_data_Mar_Apr.py','w') as f:
+    with open(f'{writeFile}.py','w',encoding='utf-8') as f:
         f.write("data = ")
         f.write(str(newsResult))
 
@@ -191,6 +215,8 @@ def mainLoop():
     #newsResult_json = json.dumps(newsResult)
     #with open("json_outputs/newsData_gnews.json", 'w') as f:
     #    f.write(newsResult_json)
+
 mainLoop()
 
 print("news data crawlering completed.")
+print("done")

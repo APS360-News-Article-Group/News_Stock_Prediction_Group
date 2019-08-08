@@ -35,6 +35,4 @@ def mainLoop():
         f.write("data = ")
         f.write(str(data_template))
 
-
-
 mainLoop()
