@@ -4,13 +4,19 @@ import pandas as pd
 from pandas.tseries.offsets import *
 import datetime
 import csv
-import gnews_data_Mar_Apr
+import gnews_data_Jun17_Jun28
 
 # define GNews API token
 #token = "b44420c3a8bada2dc8b5f3b5c801d3a5"
 #token = "7a988107d7cb0fdd20836cce0499a6ac"
 #token = "55846d7fbd99e1a9f2a81dc5c4c65569"
 #token = "0a350066ff9fc1fd81c79372ccfda723"  #wame@tempcloud.in
+#token = "1e9ef469f25044effc30b1821a67b88e"  #vifipus@armail.in
+#token = "a93159b543f2bbee9f393a56e785da8a"  #lwcuyq10852@rmailcloud.com
+#token = "1a6d4b8e13069d4df714dcf9e4bdf3de"  #biucqe79620@rmailcloud.com
+#token = "0ab95889a3abbe16e9f166108d47df15"  #tnjady96814@rmailcloud.com
+#token = "c65787d5af48f8a28e5802f341d5b55b"  #lgejvr63598@rmailcloud.com
+token = "dd6fb9cfe67eb88733648ac7c2115af7"  #edhxqp82439@rmailcloud.com
 #token = "f1d02583c7cee5d165215393a960996e"  #wame1@tempcloud.in
 #token = "5c3e05c169470ef3213ac934d6053b82"  #wame2@tempcloud.in
 #token = "28636ba95ff2a2350c2ccc24da9dfd19"  #wame3@tempcloud.in
@@ -39,13 +45,13 @@ import gnews_data_Mar_Apr
 #token = "8f3a04d8b4e3befa4e675af1c050a204"  #hqosjy71298@chacuo.net
 #token = "f5335d82005ddda0e79fbb7e82da21a4"  #glkbyr39168@chacuo.net
 #token = "814594b6458cfb01f60f21aebfcbeaf0"  #glaovy96314@chacuo.net
-token = "9cde2d86ecdc01930312e211d7d5af12"  #zdnmxi68910@chacuo.net
+#token = "9cde2d86ecdc01930312e211d7d5af12"  #zdnmxi68910@chacuo.net
 #token = "f0268c8b19983bbbb872d1df201b52f6" #holvtd05348@chacuo.net
 #token = "bdbaf05c96e0ed47c4805cfd6e47a89f" #jxzpvm21389@chacuo.net
 
 
 # import the news data file
-newsResult = gnews_data_Mar_Apr.data
+newsResult = gnews_data_Jun17_Jun28.data
 
 def loadCSV(filename):
     # csv obtained here;
@@ -172,18 +178,18 @@ def mainLoop():
         comp_list.append(compName)
 
     # Get business days in the range March 1 - April 30, 2019
-    business_days = getValidDates('2019-03-01', '2019-04-30')
+    business_days = getValidDates('2019-06-17', '2019-06-28')
     #print(len(business_days)*len(comp_list))
     #print(business_days)
 
     # Define where the company and date that we should start, ie. left off from last search
-    query_start_date = '2019-04-11'    #default start is '2019-03-01'
-    query_start_comp_idx = 71          #default start is 0
+    query_start_date = '2019-06-26'    #default start is '2019-03-01'
+    query_start_comp_idx = 70         #default start is 0
 
     # connect to GNews
     getNews(symb_toName, query_start_comp_idx, query_start_date, business_days, 20)
 
-    with open('gnews_data_Mar_Apr.py','w') as f:
+    with open('gnews_data_Jun17_Jun28.py','w') as f:
         f.write("data = ")
         f.write(str(newsResult))
 
