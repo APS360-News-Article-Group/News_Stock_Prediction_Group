@@ -7,12 +7,16 @@ def loadJson(fileLoc):
         return data
 
 
-def mainLoop():
+def mainLoop(fileLoc):
     # choose depending on your training dataset
-    fileLoc = "finaldata_full.json"
-    fileLoc = "finaldata_half.json"
+    # fileLoc = "finaldata_full.json"
+    # fileLoc = "finaldata_half.json"
 
-    newsJson = loadJson(fileLoc)
+    try:
+        newsJson = loadJson(fileLoc)
+    except:
+        print("json file can not be found")
+        return False
 
     # first split to two list, labelled 1 and labelled 0
     label_1, label_0 = [], []
@@ -55,8 +59,3 @@ def mainLoop():
     else:
         print("length check failed. Please review the code.")
         return None
-
-
-train_list, valid_list, test_list = mainLoop()
-
-print("done")
