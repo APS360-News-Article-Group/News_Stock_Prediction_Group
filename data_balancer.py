@@ -8,12 +8,13 @@ def loadJson(fileLoc):
 def saveJson(newsJson):
     jsonResult = json.dumps(newsJson)
 
-    with open("C:\\Temp\\finalData_big_balanced.json", "w") as f:
+    # IT_data_full_balanced
+
+    with open("combined_data_IT_with_stock_half_balanced.json", "w") as f:
         f.write(jsonResult)
 
 def mainLoop():
-    fileLoc = "C:\\Temp\\finalData_big.json"
-    
+    fileLoc = "combined_data_IT_with_stock_half.json"
     newsJson = loadJson(fileLoc)
 
     # try to make lambda function to do this job

@@ -1,49 +1,48 @@
 import json
 
-# ===== import the py file and it's values =====
-import gnews_data_June
-newsResult = gnews_data_June.data
+def loadJson(fileLoc):
+    with open(fileLoc) as f:
+        data = json.load(f)
+        return data
 
 
 def saveJson(newsJson):
     jsonResult = json.dumps(newsJson)
 
-    with open("C:\\Temp\\finalData_big_balanced.json", "w") as f:
+    with open("combined_data_IT_with_stock_half.json", "w") as f:
         f.write(jsonResult)
 
 
-def reduceData(topN):
+def reduceData(topN, newsJson):
     total_reducedNews = {}
+    seen = {}
+    num_items = 0
+    reducedNews = []
 
-    for key, value in newsResult.items():
-        # seen is reset for new company
-        reducedNews = []
-        seen = {}
-        for item in value:
-            if item["date"] not in seen:
-                reducedNews.append(item)
-                seen[item["date"]] = 1
+    for item in newsJson:
+        if item["companySymbol"] not in seen:
+            seen[item["companySymbol"]] = {}
+
+        if item["date"] not in seen[item["companySymbol"]]:
+            seen[item["companySymbol"]][item["date"]] = 0
+        else:
+            if seen[item["companySymbol"]][item["date"]] == 5:
+                continue
             else:
-                if seen[item["date"]] == 5:
-                    continue
-                else:
-                    reducedNews.append(item)
-                    seen[item["date"]] += 1
-                    
-        total_reducedNews[key] = reducedNews
+                reducedNews.append(item)
+                seen[item["companySymbol"]][item["date"]] += 1
 
-    return total_reducedNews
+    return reducedNews
 
 
 def mainLoop():
-    # need stock data as well wtf... =====
-    # wtfffff
+    fileLoc = "combined_data_IT_with_stock_full.json"
+    newsJson = loadJson(fileLoc)
     
-    total_reducedNews = reduceData(topN = 5)
+    reducedNews = reduceData(topN = 5, newsJson=newsJson)
 
-    # now save...
+    saveJson(reducedNews)
     
-    print("done")
 
 mainLoop()
 

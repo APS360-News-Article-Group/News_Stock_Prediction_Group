@@ -72,9 +72,9 @@ def nextMarketDate(givenDate):
     return next_day
 
 
-def getStock(symb_toName):
+def getStock(symb_toName, news_file):
     finalResult, errLog = [], []
-    fileLoc_news = "gnews_data_Mar_Apr_IT.json"
+    fileLoc_news = news_file
     newsJson = loadStockJson(fileLoc_news)
 
     for compSymb, compName in symb_toName.items():
@@ -118,12 +118,11 @@ def mainLoop():
     symb_toName = validSymbol(tuple(symb_toName.keys()))
 
     # query IEX Cloud for stock data
-    queryResult = getStock(symb_toName)
+    queryResult = getStock(symb_toName, "gnews_data_Jan_Feb.json")
     jsonResult = json.dumps(queryResult)
 
-    with open("gnews_data_Mar_Apr_IT_with_stock.json", "w") as f:
+    with open("gnews_data_Jan_Feb_with_stock.json", "w") as f:
         f.write(jsonResult)
-
 
 mainLoop()
 
