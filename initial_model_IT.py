@@ -110,7 +110,7 @@ def dataSplit(wordLimit):
                 # token_list = [word for word in tokenizer.tokenize(
                 #     item['headline'])]
 
-                token_list = tokenizer.tokenize(item['headline'])
+                token_list = tokenizer.tokenize(item['title'])
                 token_list_2 = [word.lower() for word in token_list]
 
                 idxs = [model_stoi[word].index for word in token_list_2 if word in model_stoi]
@@ -136,7 +136,7 @@ def get_accuracy(model, data_loader):
 
     for batch in data_loader:
         # try:
-            output = model(batch.headline)
+            output = model(batch.title)
             pred = output.max(1, keepdim=True)[1]
             correct += pred.eq(batch.changePercent.view_as(pred)).sum().item()
             total += batch.label.shape[0]
@@ -515,7 +515,7 @@ def train_rnn_network(model, train_iter, valid_iter, num_epochs, learning_rate, 
 
         for batch in train_iter:
             optimizer.zero_grad()
-            pred = model(batch.headline)
+            pred = model(batch.title)
             loss = criterion(pred, batch.changePercent)
             loss.backward()
             optimizer.step()
@@ -563,17 +563,17 @@ def mainLoop():
 
     train_iter = torchtext.data.BucketIterator(train,
                                             batch_size=batch_size,
-                                            sort_key=lambda x: len(x.headline),
+                                            sort_key=lambda x: len(x.title),
                                             sort_within_batch=True,
                                             repeat=False)
     val_iter = torchtext.data.BucketIterator(valid,
                                             batch_size=batch_size,
-                                            sort_key=lambda x: len(x.headline),
+                                            sort_key=lambda x: len(x.title),
                                             sort_within_batch=True,
                                             repeat=False)
     test_iter = torchtext.data.BucketIterator(test,
                                             batch_size=batch_size,
-                                            sort_key=lambda x: len(x.headline),
+                                            sort_key=lambda x: len(x.title),
                                             sort_within_batch=True,
                                             repeat=False)
     
@@ -613,13 +613,13 @@ def test_model(model_path):
 
     val_iter = torchtext.data.BucketIterator(valid,
                                         batch_size=batch_size,
-                                        sort_key=lambda x: len(x.headline), # to minimize padding
+                                        sort_key=lambda x: len(x.title), # to minimize padding
                                         sort_within_batch=True,        # sort within each batch
                                         repeat=False)                  # repeat the iterator for many epochs
 
     test_iter = torchtext.data.BucketIterator(test,
                                         batch_size=batch_size,
-                                        sort_key=lambda x: len(x.headline), # to minimize padding
+                                        sort_key=lambda x: len(x.title), # to minimize padding
                                         sort_within_batch=True,        # sort within each batch
                                         repeat=False)                  # repeat the iterator for many epochs
     

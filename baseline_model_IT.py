@@ -123,7 +123,7 @@ def word2vec_dataSplit(wordLimit):
 
     for i, item in enumerate(trainJson):
         try:
-            token_list = tokenizer.tokenize(item['headline'])
+            token_list = tokenizer.tokenize(item['title'])
             token_list_1 = [word for word in token_list]
 
             idxs = [
@@ -138,7 +138,7 @@ def word2vec_dataSplit(wordLimit):
     
     for i, item in enumerate(validJson):
         try:
-            token_list = tokenizer.tokenize(item['headline'])
+            token_list = tokenizer.tokenize(item['title'])
             token_list_1 = [word for word in token_list]
 
             idxs = [
@@ -153,7 +153,7 @@ def word2vec_dataSplit(wordLimit):
 
     for i, item in enumerate(testJson):
         try:
-            token_list = tokenizer.tokenize(item['headline'])
+            token_list = tokenizer.tokenize(item['title'])
             token_list_1 = [word for word in token_list]
 
             idxs = [
