@@ -104,7 +104,8 @@ def word2vec_dataSplit(wordLimit):
     print("Datasplit intialized.")
     # first, load the stock json obtained from stock_data_crawler
     train, valid, test = [], [], []
-    fileLoc = "C:\\Temp\\finalData_big_balanced.json"
+    # fileLoc = "C:\\Temp\\finalData_big_balanced.json"
+    fileLoc = "finaldata_half.json"
     modelLoc = "C:\\Temp\\GoogleNews-vectors-negative300.bin.gz"
     # wordLimit = 1000000
     # wordLimit = 5000
@@ -120,21 +121,20 @@ def word2vec_dataSplit(wordLimit):
     errorList = []
 
     for i, item in enumerate(stockJson):
-        if item['companySymbol'] in targetCompList:
-            try:
-                token_list = tokenizer.tokenize(item['headline'] + " " + item['description'])
-                token_list_1 = [word for word in token_list]
+        try:
+            token_list = tokenizer.tokenize(item['title'])
+            token_list_1 = [word for word in token_list]
 
-                idxs = [
-                    model_stoi[word].index for word in token_list_1 if word in model_stoi]
-                idxs = torch.tensor(idxs)
-                label = torch.tensor(int(item['label'])).long()
-                if i % 10 < 9:
-                    train.append((idxs, label))
-                else:
-                    valid.append((idxs, label))
-            except:
-                errorList.append(item)
+            idxs = [
+                model_stoi[word].index for word in token_list_1 if word in model_stoi]
+            idxs = torch.tensor(idxs)
+            label = torch.tensor(int(item['label'])).long()
+            if i % 10 < 9:
+                train.append((idxs, label))
+            else:
+                valid.append((idxs, label))
+        except:
+            errorList.append(item)
 
     i2, j2, k2 = len(train), len(valid), len(test)
     # model_emb = nn.Embedding.from_pretrained(model.vectors)
@@ -323,8 +323,8 @@ def mainLoop_word2vec():
     print("Get accuracy complete.")
 
     # train network
-    #train_rnn_network(model_baseline_fc, train_loader, valid_loader,
-    #                  num_epochs=150, learning_rate=1.2e-4)
+    train_rnn_network(model_baseline_fc, train_loader, valid_loader,
+                     num_epochs=150, learning_rate=1.2e-4)
 
 # mainLoop_sent2vec()
 
