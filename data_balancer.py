@@ -14,8 +14,12 @@ def saveJson(newsJson):
         f.write(jsonResult)
 
 def mainLoop():
-    fileLoc = "combined_data_IT_with_stock_half.json"
+    fileLoc = "json_data/finaldata_half.json"
     newsJson = loadJson(fileLoc)
+
+    hehe = len(newsJson)
+
+    target = list(filter(lambda x: x["companySymbol"].startswith("FB"), newsJson))
 
     # try to make lambda function to do this job
     count_dec, count_inc = 0, 0

@@ -12,12 +12,12 @@ def saveJson(newsJson):
 
     # IT_data_full_balanced
 
-    with open("finaldata_full.json", "w") as f:
+    with open("C:\\Temp\\finalData_big_balanced_keyTitle.json", "w") as f:
         f.write(jsonResult)
 
 
 def mainLoop():
-    fileLoc = "finaldata_full.json"
+    fileLoc = "C:\\Temp\\finalData_big_balanced_fix.json"
     newsJson = loadJson(fileLoc)
 
     i = len(newsJson)

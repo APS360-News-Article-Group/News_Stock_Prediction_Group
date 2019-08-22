@@ -80,6 +80,7 @@ def sent2vec_dataSplit():
     # first, load the stock json obtained from stock_data_crawler
     train, valid, test, errList = [], [], [], []
     fileLoc = "C:\\Temp\\finalData_big_balanced.json"
+    fileLoc = "json_data\\finaldata_half.json"
     modelLoc = "C:\\Temp\\GoogleNews-vectors-negative300.bin.gz"
     stockJson = loadJson(fileLoc)
 
@@ -105,11 +106,12 @@ def word2vec_dataSplit(wordLimit):
     # first, load the stock json obtained from stock_data_crawler
     train, valid, test = [], [], []
     # fileLoc = "C:\\Temp\\finalData_big_balanced.json"
-    fileLoc = "finaldata_half.json"
+    fileLoc = "json_data\\finaldata_half.json"
     modelLoc = "C:\\Temp\\GoogleNews-vectors-negative300.bin.gz"
     # wordLimit = 1000000
     # wordLimit = 5000
     stockJson = loadJson(fileLoc)
+    total_len = len(stockJson)
     model = gensim.models.KeyedVectors.load_word2vec_format(
         modelLoc, binary=True, limit=wordLimit)
 
@@ -121,6 +123,9 @@ def word2vec_dataSplit(wordLimit):
     errorList = []
 
     for i, item in enumerate(stockJson):
+        # # for testing half
+        # if i > total_len*0.5:
+        #     break
         try:
             token_list = tokenizer.tokenize(item['title'])
             token_list_1 = [word for word in token_list]
@@ -175,14 +180,23 @@ def sent2vec_dataSplit():
 def get_accuracy(model, data_loader):
     correct, total = 0, 0
     errLog = []
+    pred_total, label_total = [], []
+
     for tweets, labels in data_loader:
         try:
             output = model(tweets)
             pred = output.max(1, keepdim=True)[1]
             correct += pred.eq(labels.view_as(pred)).sum().item()
             total += labels.shape[0]
+            pred_total += [int(i) for i in pred]
+            label_total += [int(i) for i in labels]
         except:
             errLog.append((tweets, labels))
+
+    confusion = tf.confusion_matrix(labels=label_total, predictions=pred_total)
+    sess = tf.Session()
+    with sess.as_default():
+        print(sess.run(confusion))
 
     return correct / total
 

@@ -1,0 +1,45 @@
+'UBS: Despite Regulatory Risk, Alphabet Is A Buy' [1]
+(0.4173, 0.5827)
+
+
+'Eric Schmidt and Diane Greene to exit Alphabet board' [0]
+(0.0164, 0.9836)
+
+
+'Alphabet first-quarter revenue misses estimates' [0]
+(0.9946, 0.0054)
+
+
+'Investors Say Google Parent Co. Downplaying Data Leak' [1]
+(0.5470, 0.4530)
+
+
+'Can Alphabet Close in on $1 Trillion Market Cap on Earnings?' [0]
+(0.8842, 0.1158)
+
+
+'Netflix, Inc. (NFLX): Horizon Kinetics Says Its A Risky Investment' [0]
+
+
+
+'Netflix attracts a record number of new subscribers, but the stock isn¡¯t reacting like usual' [1]
+(0.0969, 0.9031)
+
+
+'Report: Nearly a Quarter of Netflix Users Would Cancel If the Service Introduced Ads' [1]
+(0.4414, 0.5586)
+
+
+"Report: Facebook's Planned Cryptocurrency Has Visa, PayPal, Others On Board" [1]
+
+
+'Facebook Must Proceed With Privacy Breach Suit, Judge Rules' [0]
+
+
+company doing very well
+
+
+company fails to meet consumer demand
+
+
+company shows poor financial performance

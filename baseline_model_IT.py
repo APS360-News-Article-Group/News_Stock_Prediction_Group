@@ -104,7 +104,7 @@ def word2vec_dataSplit(wordLimit):
 
     # first, load the stock json obtained from stock_data_crawler
     train, valid, test = [], [], []
-    fileLoc = "finaldata_half.json"
+    fileLoc = "json_data\\finaldata_half.json"
     modelLoc = "C:\\Temp\\GoogleNews-vectors-negative300.bin.gz"
 
     trainJson, validJson, testJson = dataSplitPkg.mainLoop(fileLoc=fileLoc)

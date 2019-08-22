@@ -129,13 +129,27 @@ def dataSplit(wordLimit):
 
 def get_accuracy(model, data_loader):
     correct, total = 0, 0
+    high_conf_correct, high_conf_total = 0, 0
     precision_correct, precision_total = 0, 0
     errLog = []
     pred_total, label_total = [], []
 
+
     for batch in data_loader:
         output = model(batch.title)
+        pred_softmax = F.softmax(output, dim=1)
+        ho = float(pred_softmax[1][0])
+
+        # filter highly confident predictions (acc >= 80%)
+        high_conf_index = [i for i, item in enumerate(pred_softmax) if abs(item[0]-item[1]) >= 0.60]
         pred = output.max(1, keepdim=True)[1]
+        try:
+            high_conf_pred = pred[high_conf_index]
+            high_conf_changePercent = batch.changePercent[high_conf_index]
+            high_conf_correct += high_conf_pred.eq(high_conf_changePercent.view_as(high_conf_pred)).sum().item()
+            high_conf_total += len(high_conf_pred)
+        except:
+            pass
         correct += pred.eq(batch.changePercent.view_as(pred)).sum().item()
         total += batch.label.shape[0]
         pred_total += [int(i) for i in pred]
@@ -158,7 +172,14 @@ def get_accuracy(model, data_loader):
     else:
         ha = precision_correct / precision_total
 
-    return correct / total, ha
+    if high_conf_total == 0:
+        a = 0
+    else:
+        a = high_conf_correct/high_conf_total
+
+    print("high confidence acc 80%", a)
+
+    return correct/total, ha
 
 
 class NewsRNN(nn.Module):
@@ -247,11 +268,11 @@ class NewsGRU_word2vec(nn.Module):
         self.emb = embedding
         self.name = "NewsGRU_word2vec"
         self.hidden_size = hidden_size
-        self.rnn = nn.GRU(input_size, hidden_size, dropout=0.2, batch_first=True)
+        self.rnn = nn.GRU(input_size, hidden_size, dropout=0.1, batch_first=True)
         self.relu = nn.ReLU()
-        self.fc = nn.Linear(hidden_size*2, num_classes)
-        self.fc_1 = nn.Linear(hidden_size, 100)
-        self.fc_2 = nn.Linear(100, num_classes)
+        self.fc_1 = nn.Linear(hidden_size*2, 128)
+        self.fc_2 = nn.Linear(128, num_classes)
+        self.fc_3 = nn.Linear(128, num_classes)
     
     def forward(self, x):
         a, b = x[0], x[1]
@@ -269,7 +290,8 @@ class NewsGRU_word2vec(nn.Module):
 
         out2 = torch.cat([torch.max(out, dim=1)[0], 
                  torch.mean(out, dim=1)], dim=1)
-        out2 = self.fc(out2)
+        out2 = self.relu(self.fc_1(out2))
+        out2 = self.fc_2(out2)
 
         return out2
 
@@ -358,37 +380,27 @@ class NewsLSTM_word2vec(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, num_classes, embedding):
         super(NewsLSTM_word2vec, self).__init__()
         self.emb = embedding
+        self.relu = nn.ReLU()
         self.name = "NewsLSTM_word2vec"
-
-        # 300 since vector is of size 300
-        # self.emb = torch.eye(300)
         self.hidden_size = hidden_size
         self.num_layers = num_layers
-
         self.rnn = nn.LSTM(input_size, hidden_size,
-                           num_layers, dropout = 0.2, batch_first=True)
-        self.fc_1 = nn.Linear(hidden_size, 50)
-        self.fc_2 = nn.Linear(50, num_classes)
-        self.relu = nn.ReLU()
+                           num_layers, dropout = 0.07, batch_first=True)
+        self.fc_1 = nn.Linear(hidden_size, 124)
+        self.fc_2 = nn.Linear(124, num_classes)
 
     def forward(self, x):
-        # Look up the embedding
+        # Look up the imported word2vec embedding. x[0] = one hot encode of new title. x[1] = label
         x1 = self.emb(x[0])
         # Set an initial hidden state
         h0 = torch.zeros(self.num_layers, len(x1), self.hidden_size)
         c0 = torch.zeros(self.num_layers, len(x1), self.hidden_size)
         # Forward propagate the RNN
         out, _ = self.rnn(x1, (h0, c0))
-
         # Pass the output of the last time step to the classifier
-        one = out[:, x[1].long()-1, :]
-        out = self.relu(self.fc_1(one[:, -1, :]))
+        out = out[:, x[1].long()-1, :]
+        out = self.relu(self.fc_1(out[:, -1, :]))
         out2 = self.fc_2(out)
-        # out = torch.cat([torch.max(out, dim=1)[0], torch.mean(out, dim=1)], dim=1)
-        # out = self.relu(self.fc_3(out))
-        # out = self.fc_4(out)
-
-        # out = self.fc(out[:, -1, :])
 
         return out2
 
@@ -473,7 +485,8 @@ def tabular_dataSplit(glove_model):
     "label":("label", base_field)}
 
     # train, valid, test = dataSplitPkg.mainLoop(fileLoc = "finaldata_half.json")
-    newsJson = loadJson(fileLoc = "finaldata_half.json")
+    newsJson = loadJson(fileLoc = "json_data/finaldata_half.json")
+    newsJson_test = loadJson(fileLoc = "C:\\Temp\\test_July.json")
 
     len_full = len(newsJson)
 
@@ -482,12 +495,18 @@ def tabular_dataSplit(glove_model):
     # test = newsJson[int(len_full*0.7)+int(len_full*0.15):]
 
     full_dataset = TabularDataset_From_List(input_list = newsJson, format = "dict", fields = fields)
+   
     # train = TabularDataset_From_List(input_list = train, format = "dict", fields = fields)
     # valid = TabularDataset_From_List(input_list = valid, format = "dict", fields = fields)
     # test = TabularDataset_From_List(input_list = test, format = "dict", fields = fields)
     
     # old dataset split, works
-    train, valid, test = full_dataset.split(split_ratio = [0.7, 0.15, 0.15])
+    # train, valid, test = full_dataset.split(split_ratio = [0.7, 0.15, 0.15])
+    # 87.5 and 12.5% when combined with test data creates cumulative 7:1.5:1.5 split ratio.
+    train, valid = full_dataset.split(split_ratio = [0.875, 0.125])
+
+    # test data loaded as separate json file
+    test = TabularDataset_From_List(input_list = newsJson_test, format = "dict", fields = fields)
 
     # len_full = len(full_dataset)
     # train = full_dataset[:int(len_full*0.7)]
@@ -580,26 +599,11 @@ def train_rnn_network(model, train_iter, valid_iter, num_epochs, learning_rate, 
 
 
 def mainLoop():
-    # split data, wordLimit = take word vectors of the 'n' most commonly used words in GoogleNews
-    # train, valid, test, model = dataSplit(wordLimit=50000)
-
-    # glove_model = torchtext.vocab.GloVe(name='840B', dim=300, max_vectors=10000)
-
+    torch.manual_seed(2019)
     train, valid, test, model, text_field, embedding = tabular_dataSplit("glove_model")
 
-    # define weights and embedding of pretrained word2vec model
-    # weights = torch.FloatTensor(model.vectors)
-    # embedding = nn.Embedding.from_pretrained(weights)
-
-    # load data, need to work on test loader
-    # train_loader = TweetBatcher(train, batch_size=32, drop_last=False)
-    # valid_loader = TweetBatcher(valid, batch_size=32, drop_last=False)
-
-    # use bucket iterator
-    # sort_key=lambda x: len(x.headline)
-
-    batch_size = 124
-    hidden_size = 124
+    batch_size = 256
+    hidden_size = 248
 
     train_iter = torchtext.data.BucketIterator(train,
                                            batch_size=batch_size,
@@ -611,27 +615,20 @@ def mainLoop():
                                            sort_key=lambda x: len(x.title), # to minimize padding
                                            sort_within_batch=True,        # sort within each batch
                                            repeat=False)                  # repeat the iterator for many epochs
-    test_iter = torchtext.data.BucketIterator(test,
-                                           batch_size=batch_size,
-                                           sort_key=lambda x: len(x.title), # to minimize padding
-                                           sort_within_batch=True,        # sort within each batch
-                                           repeat=False)                  # repeat the iterator for many epochs
+    # test_iter = torchtext.data.BucketIterator(test,
+    #                                        batch_size=batch_size,
+    #                                        sort_key=lambda x: len(x.title), # to minimize padding
+    #                                        sort_within_batch=True,        # sort within each batch
+    #                                        repeat=False)                  # repeat the iterator for many epochs
     
-    # need input size to be a variable
-    # inputSize = 
     input_size = embedding.num_embeddings
-    # valina RNN and LSTM
-    # model_simple = NewsRNN(300, 248, 2, embedding)
-    # model_eye = NewsRNN_eye(input_size, 62, 2, embedding)
-    # model_medium = NewsGRU(300, 2048, 2, embedding)
-    # model_complex = NewsLSTM(300, 124, 2, 2, embedding)
     
     model_LSTM_eye = NewsLSTM_eye(input_size, hidden_size, 2, 2, embedding)
     model_gru_eye = NewsGRU_eye(input_size, hidden_size, 2)
 
     # word2vec uses GoogleNews300 embedding
     model_gru_word2vec = NewsGRU_word2vec(300, hidden_size, 2, embedding)
-    model_LSTM_word2vec = NewsLSTM_word2vec(300, hidden_size, 4, 2, embedding)
+    model_LSTM_word2vec = NewsLSTM_word2vec(300, hidden_size, 2, 2, embedding)
 
     # for any text value, vocab for the field must be built, otherwise torchtext throws error as it would be expecting integer
 
@@ -639,24 +636,17 @@ def mainLoop():
     # text_field.build_vocab(train, valid, test, vectors=vectors)
     # get initial accuracy
     print("Get accuracy initialized.")
-    print(get_accuracy(model_gru_word2vec, train_iter))
+    # print(get_accuracy(model_gru_word2vec, train_iter))
     print("Get accuracy complete.")
 
-    # train network
-    # train_rnn_network(model_LSTM_eye, train_iter, val_iter,
-    #                   num_epochs=100, learning_rate=1.5e-04, batch_size=batch_size, hidden_size=hidden_size)
-
     train_rnn_network(model_LSTM_word2vec, train_iter, val_iter,
-                    num_epochs=100, learning_rate=2e-04, batch_size=batch_size, hidden_size=hidden_size)
+                    num_epochs=50, learning_rate=3.5e-04, batch_size=batch_size, hidden_size=hidden_size)
 
-    # train network
-    # train_rnn_network(model_LSTM_word2vec, train_iter, val_iter,
-    #                   num_epochs=200, learning_rate=2e-04, batch_size=batch_size, hidden_size=hidden_size)
 
 def test_model(model_path):
     train, valid, test, model, text_field, embedding = tabular_dataSplit("glove_model")
-    batch_size = 28
-    hidden_size = 128
+    batch_size = 256
+    hidden_size = 248
     model_test = NewsLSTM_word2vec(300, hidden_size, 2, 2, embedding)
     model_test.load_state_dict(torch.load(model_path))
 
@@ -675,8 +665,9 @@ def test_model(model_path):
     print(get_accuracy(model_test, val_iter))
     print(get_accuracy(model_test, test_iter))
 
-mainLoop()
+# so that the training only runs when the python script is explicitly ran
+# we don't want the training to begin when this script is imported
+if __name__ == "__main__":
+    mainLoop()
 
-# test_model(model_path="C:\\Temp\\best_models\\initial_models\\nameNewsLSTM_word2vec_bs28_hs128_lr0.0002_epoch97.pth")
-
-print("done")
+# test_model(model_path="C:\\Temp\\best_models\\initial_models\\nameNewsLSTM_word2vec_bs256_hs248_lr0.00035_epoch45.pth"
